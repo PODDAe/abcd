@@ -214,6 +214,47 @@
             line-height: 1.6;
         }
 
+        .pairing-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .pairing-card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--primary-red);
+            border-radius: 15px;
+            padding: 25px;
+            width: 280px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3);
+        }
+
+        .pairing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.5);
+        }
+
+        .pairing-card i {
+            font-size: 3rem;
+            color: var(--primary-red);
+            margin-bottom: 15px;
+        }
+
+        .pairing-card h3 {
+            color: var(--primary-light);
+            margin-bottom: 10px;
+        }
+
+        .pairing-card p {
+            color: var(--muted, #ccc);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
         .button-group {
             display: flex;
             flex-wrap: wrap;
@@ -254,27 +295,12 @@
             left: 100%;
         }
 
-        .btn-download {
+        .btn-primary {
             background: linear-gradient(to right, var(--primary-red), #000000);
             border-color: var(--primary-red);
         }
 
-        .btn-pair {
-            background: linear-gradient(to right, #000, #222);
-            border-color: var(--accent-gold);
-        }
-
-        .btn-github {
-            background: linear-gradient(to right, #000, #222);
-            border-color: var(--accent-gold);
-        }
-        
-        .btn-heroku {
-            background: linear-gradient(to right, #000, #222);
-            border-color: var(--accent-gold);
-        }
-
-        .btn-contact {
+        .btn-secondary {
             background: linear-gradient(to right, #000, #222);
             border-color: var(--accent-gold);
         }
@@ -333,6 +359,16 @@
                 font-size: 1.8rem;
             }
             
+            .pairing-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .pairing-card {
+                width: 100%;
+                max-width: 280px;
+            }
+            
             .button-group {
                 flex-direction: column;
                 align-items: center;
@@ -375,17 +411,34 @@
             
             <h2>DTZ NOVA X MD Whatsapp Bot Create By Dulina Nethmira</h2>
             <p>DTZ NOVA X MD is a fast, easy-to-use, and highly efficient MultiDevice WhatsApp Bot with advanced features and red-themed design.</p>
-            
+
+            <!-- Pairing Options -->
+            <div class="pairing-options">
+                <div class="pairing-card">
+                    <i class="fas fa-qrcode"></i>
+                    <h3>QR Code Pairing</h3>
+                    <p>Scan QR code with your phone for instant connection</p>
+                    <a href="/qr" class="btn btn-primary">
+                        <i class="fas fa-qrcode"></i> Use QR Code
+                    </a>
+                </div>
+                
+                <div class="pairing-card">
+                    <i class="fas fa-phone"></i>
+                    <h3>Phone Number Pairing</h3>
+                    <p>Enter your phone number to get pairing code</p>
+                    <a href="/pair" class="btn btn-primary">
+                        <i class="fas fa-phone"></i> Use Phone Number
+                    </a>
+                </div>
+            </div>
+
             <div class="button-group">
-                <a href="/pair" class="btn btn-pair">
-                    <i class="fas fa-link"></i> Pair Code
-                </a>
-               
-                <a href="https://wa.me/94752978237" target="_blank" class="btn btn-contact">
+                <a href="https://wa.me/94752978237" target="_blank" class="btn btn-secondary">
                     <i class="fas fa-headset"></i> Contact Owner
                 </a>
                 
-                <a href="https://github.com/alpha-x-team-ofc/DTZ-NOVA-X-MD" target="_blank" class="btn btn-github">
+                <a href="https://github.com/alpha-x-team-ofc/DTZ-NOVA-X-MD" target="_blank" class="btn btn-secondary">
                     <i class="fab fa-github"></i> GitHub
                 </a>
             </div>

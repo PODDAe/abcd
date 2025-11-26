@@ -10,10 +10,40 @@
   },
   "scripts": {
     "start": "node index.js",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "dev": "node index.js"
   },
-  "author": "Dulina Nethmira",
+  "keywords": [
+    "whatsapp",
+    "bot",
+    "multidevice",
+    "baileys",
+    "qr-code",
+    "pairing",
+    "dtz",
+    "nova",
+    "md"
+  ],
+  "author": {
+    "name": "Dulina Nethmira",
+    "email": "dnethmira9@gmail.com",
+    "url": "https://wa.me/94752978237"
+  },
+  "contributors": [
+    {
+      "name": "DTZ Team",
+      "url": "https://chat.whatsapp.com/KJnHbIYysdrJhCLH8C1HFe"
+    }
+  ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alpha-x-team-ofc/DTZ-NOVA-X-MD"
+  },
+  "homepage": "https://github.com/alpha-x-team-ofc/DTZ-NOVA-X-MD#readme",
+  "bugs": {
+    "url": "https://github.com/alpha-x-team-ofc/DTZ-NOVA-X-MD/issues"
+  },
   "dependencies": {
     "@whiskeysockets/baileys": "github:kiuur/baileys",
     "qrcode": "^1.5.4",
@@ -25,6 +55,10 @@
     "express": "^4.21.2",
     "path": "^0.12.7",
     "megajs": "^1.3.5",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
   }
 }

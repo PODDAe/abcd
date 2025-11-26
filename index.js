@@ -46,12 +46,12 @@ async function cleanupSession(sessionDir) {
     }
 }
 
-// QR Code pairing endpoint
+// QR Code pairing endpoint - FIXED
 app.get('/api/code/qr', async (req, res) => {
     console.log('📡 QR code endpoint hit');
     
     const sessionId = 'session_' + Date.now();
-    const sessionDir = `./${sessionId}`;
+    const sessionDir = `./sessions/${sessionId}`;
 
     console.log('🔐 Starting QR pairing session');
     
@@ -61,18 +61,16 @@ app.get('/api/code/qr', async (req, res) => {
         const socketConfig = {
             auth: {
                 creds: state.creds,
-                keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" })),
+                keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" })),
             },
-            printQRInTerminal: false,
-            logger: pino({ level: "silent" }),
+            printQRInTerminal: true,
+            logger: pino({ level: "fatal" }),
             browser: ["DTZ-NOVA-X-MD", "Chrome", "3.0.0"],
-            markOnlineOnConnect: true,
         };
 
         const bot = makeWASocket(socketConfig);
 
         let qrGenerated = false;
-        let isConnected = false;
 
         bot.ev.on('creds.update', saveCreds);
 
@@ -116,14 +114,10 @@ app.get('/api/code/qr', async (req, res) => {
 
             if (connection === "open") {
                 console.log('✅ WhatsApp connected successfully!');
-                isConnected = true;
                 
                 const session = activeSessions.get(sessionId);
                 if (session) {
                     session.connected = true;
-                    
-                    // Wait a bit for connection to stabilize
-                    await delay(3000);
                     
                     // Send welcome message to the connected number
                     try {
@@ -139,14 +133,11 @@ app.get('/api/code/qr', async (req, res) => {
                     } catch (msgError) {
                         console.log('❌ Welcome message failed:', msgError.message);
                     }
-
-                    console.log('🔄 Session active - ready to receive messages');
                 }
             }
 
             if (connection === "close") {
                 console.log('❌ Connection closed');
-                isConnected = false;
                 await cleanupSession(sessionDir);
             }
         });
@@ -176,7 +167,7 @@ app.get('/api/code/qr', async (req, res) => {
     }
 });
 
-// Phone number pairing endpoint
+// Phone number pairing endpoint - FIXED
 app.get('/api/code/phone', async (req, res) => {
     console.log('📡 Phone pairing endpoint hit');
     
@@ -190,7 +181,7 @@ app.get('/api/code/phone', async (req, res) => {
     }
 
     const cleanNumber = number.replace(/\D/g, '');
-    const sessionDir = `./session_${cleanNumber}_${Date.now()}`;
+    const sessionDir = `./sessions/phone_${cleanNumber}_${Date.now()}`;
 
     console.log(`📞 Attempting phone pairing for: ${cleanNumber}`);
 
@@ -202,55 +193,25 @@ app.get('/api/code/phone', async (req, res) => {
                 creds: state.creds,
                 keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" })),
             },
-            printQRInTerminal: false,
+            printQRInTerminal: true,
             logger: pino({ level: "fatal" }),
             browser: ["DTZ-NOVA-X-MD", "Chrome", "3.0.0"],
-            markOnlineOnConnect: true,
         };
 
         const bot = makeWASocket(socketConfig);
 
-        let isConnected = false;
-
         bot.ev.on('creds.update', saveCreds);
 
-        bot.ev.on("connection.update", async (update) => {
-            const { connection } = update;
-            
-            if (connection === "open") {
-                console.log('✅ WhatsApp connected via phone pairing!');
-                isConnected = true;
-                
-                // Wait for connection to stabilize
-                await delay(3000);
-                
-                // Send welcome message to the paired number
-                try {
-                    const userJid = cleanNumber + '@s.whatsapp.net';
-                    console.log('📨 Sending welcome message to:', userJid);
-                    
-                    await bot.sendMessage(userJid, { 
-                        text: `🔥 *DTZ NOVA X MD - PHONE PAIRING SUCCESSFUL!*\n\n🏆 *DARK TECH ZOON*\n\n✅ Your WhatsApp is now connected via phone pairing\n\n👤 Developer: Dulina Nethmira\n🤖 Bot: DTZ NOVA X MD\n\n📢 Channel: https://chat.whatsapp.com/KJnHbIYysdrJhCLH8C1HFe\n\n👤 Owner: wa.me/94752978237\n\n💬 You can now send and receive messages!\n\n⚠️ *DO NOT SHARE YOUR SESSION DATA*` 
-                    });
-                    console.log('✅ Welcome message sent via phone pairing');
-                } catch (msgError) {
-                    console.log('❌ Welcome message failed:', msgError.message);
-                }
-
-                console.log('🔄 Phone pairing session active - ready to receive messages');
-            }
-        });
-
-        if (!bot.authState.creds.registered) {
-            await delay(2000);
+        if (!state.creds.registered) {
+            await delay(1500);
             
             try {
-                const pairingCode = await bot.requestPairingCode(cleanNumber);
-                console.log(`✅ Pairing code generated: ${pairingCode}`);
+                const code = await bot.requestPairingCode(cleanNumber);
+                console.log(`✅ Pairing code generated: ${code}`);
                 
                 res.json({
                     success: true,
-                    code: pairingCode,
+                    code: code,
                     message: 'Use this code in WhatsApp: Linked Devices → Link a Device',
                     number: cleanNumber
                 });
@@ -258,26 +219,44 @@ app.get('/api/code/phone', async (req, res) => {
                 activeSessions.set(sessionDir, {
                     bot,
                     sessionDir,
-                    connected: true
+                    connected: false
                 });
 
-                // Keep session alive for longer
-                setTimeout(async () => {
-                    if (isConnected) {
-                        console.log('🔄 Phone pairing session still active');
-                    } else {
-                        await cleanupSession(sessionDir);
+                // Handle connection after pairing
+                bot.ev.on("connection.update", async (update) => {
+                    const { connection } = update;
+                    
+                    if (connection === "open") {
+                        console.log('✅ WhatsApp connected via phone pairing!');
+                        
+                        const session = activeSessions.get(sessionDir);
+                        if (session) {
+                            session.connected = true;
+                            
+                            // Send welcome message
+                            try {
+                                const userJid = cleanNumber + '@s.whatsapp.net';
+                                console.log('📨 Sending welcome message to:', userJid);
+                                
+                                await bot.sendMessage(userJid, { 
+                                    text: `🔥 *DTZ NOVA X MD - PHONE PAIRING SUCCESSFUL!*\n\n🏆 *DARK TECH ZOON*\n\n✅ Your WhatsApp is now connected via phone pairing\n\n👤 Developer: Dulina Nethmira\n🤖 Bot: DTZ NOVA X MD\n\n📢 Channel: https://chat.whatsapp.com/KJnHbIYysdrJhCLH8C1HFe\n\n👤 Owner: wa.me/94752978237\n\n💬 You can now send and receive messages!\n\n⚠️ *DO NOT SHARE YOUR SESSION DATA*` 
+                                });
+                                console.log('✅ Welcome message sent via phone pairing');
+                            } catch (msgError) {
+                                console.log('❌ Welcome message failed:', msgError.message);
+                            }
+                        }
                     }
-                }, 120000);
+                });
 
             } catch (pairError) {
-                console.error('❌ Pairing error:', pairError.message);
+                console.error('❌ Pairing error:', pairError);
                 await cleanupSession(sessionDir);
                 
                 res.json({
                     success: false,
-                    error: 'Phone pairing failed',
-                    message: 'Please use QR code method instead'
+                    error: 'Phone pairing failed: ' + pairError.message,
+                    message: 'Please try QR code method'
                 });
             }
         } else {
@@ -294,19 +273,54 @@ app.get('/api/code/phone', async (req, res) => {
         
         res.json({
             success: false,
-            error: 'Phone pairing not available',
+            error: 'Phone pairing not available: ' + error.message,
             message: 'Please use QR code method'
         });
     }
 });
 
-// Routes
+// Check connection status endpoint
+app.get('/api/code/status/:sessionId', async (req, res) => {
+    const { sessionId } = req.params;
+    
+    const session = activeSessions.get(sessionId);
+    
+    if (!session) {
+        return res.json({ 
+            success: false,
+            connected: false, 
+            error: 'Session not found' 
+        });
+    }
+    
+    res.json({ 
+        success: true,
+        connected: session.connected,
+        message: session.connected ? 'WhatsApp connected successfully!' : 'Waiting for connection...'
+    });
+});
+
+// Create sessions directory on startup
+async function ensureSessionsDir() {
+    try {
+        await fs.mkdir('./sessions', { recursive: true });
+        console.log('✅ Sessions directory created');
+    } catch (error) {
+        console.log('📁 Sessions directory already exists');
+    }
+}
+
+// Routes - FIXED
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'main.html'));
 });
 
 app.get('/pair', (req, res) => {
     res.sendFile(path.join(__dirname, 'pair.html'));
+});
+
+app.get('/qr', (req, res) => {
+    res.sendFile(path.join(__dirname, 'qr.html'));
 });
 
 // Health check endpoints
@@ -358,8 +372,10 @@ app.use((req, res) => {
     }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`
+// Initialize and start server
+ensureSessionsDir().then(() => {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`
 🔥 DTZ NOVA X MD Session Generator Started
 📍 Port: ${PORT}
 🌐 Environment: ${process.env.NODE_ENV || 'development'}
@@ -370,11 +386,13 @@ app.listen(PORT, '0.0.0.0', () => {
     
 📋 Available Routes:
    ✅ GET  /                 - Main Page
-   ✅ GET  /pair             - Pairing Page  
+   ✅ GET  /pair             - Phone Pairing Page  
+   ✅ GET  /qr               - QR Code Pairing Page
    ✅ GET  /api/code/qr      - QR Code Generation
    ✅ GET  /api/code/phone   - Phone Pairing
    ✅ GET  /api/health       - Health Check
-    `);
+        `);
+    });
 });
 
 export default app;

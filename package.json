@@ -1,0 +1,30 @@
+{
+  "name": "dtz-nova-x-md",
+  "version": "3.0.0",
+  "description": "DTZ NOVA X MD - Sri Lanka's Best WhatsApp Bot by Dulina Nethmira",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "npm": ">=9.7.2",
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "build": "echo 'No build step required'"
+  },
+  "author": "Dulina Nethmira",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "github:kiuur/baileys",
+    "qrcode": "^1.5.4",
+    "awesome-phonenumber": "^7.2.0",
+    "jimp": "^0.16.1",
+    "pino": "^9.5.0",
+    "phone": "^3.1.55",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "path": "^0.12.7",
+    "megajs": "^1.3.5",
+    "dotenv": "^16.4.5"
+  }
+}
